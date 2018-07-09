@@ -2,6 +2,8 @@ package com.hannahpark.simplechat;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -14,10 +16,20 @@ import com.parse.ParseException;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ChatActivity extends AppCompatActivity {
     static final String TAG = ChatActivity.class.getSimpleName();
     static final String USER_ID_KEY = "userId";
     static final String BODY_KEY = "body";
+
+    RecyclerView rvChat;
+    List<Message> mMessages;
+    ChatAdapter mAdapter;
+
+    //keep track of the intial load to scroll to the bottom of the ListView
+    boolean mFirstLoad;
 
     EditText etMessage;
     Button btSend;
@@ -58,6 +70,18 @@ public class ChatActivity extends AppCompatActivity {
         //find the text field and button
         etMessage = (EditText) findViewById(R.id.etMessage);
         btSend = (Button) findViewById(R.id.btSend);
+        rvChat = (RecyclerView) findViewById(R.id.rvChat);
+        mMessages = new ArrayList<>();
+        mFirstLoad = true;
+
+        final String userId = ParseUser.getCurrentUser().getObjectId();
+        mAdapter = new ChatAdapter(ChatActivity.this, userId, mMessages);
+        rvChat.setAdapter(mAdapter);
+
+        //associate the LayoutManager with the RecyclerView
+        final LinearLayoutManager linearLayoutManager = new LinearLayoutManager(ChatActivity.this);
+        rvChat.setLayoutManager(linearLayoutManager);
+
         //when the send button is clicked, create the message object on Parse
         btSend.setOnClickListener(new View.OnClickListener() {
 
@@ -80,6 +104,7 @@ public class ChatActivity extends AppCompatActivity {
                         if(e==null) {
                             Toast.makeText(ChatActivity.this, "Successfully created a message on Parse",
                                     Toast.LENGTH_SHORT).show();
+                            refreshMessages();
                         } else {
                             Log.e(TAG, "Failed to save the message", e);
                         }
@@ -89,4 +114,10 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
+
+    //Query messages from Parse so we can load them into the chat adapter
+    void refreshMessages() {
+
+    }
+
 }
